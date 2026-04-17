@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ServiceTicket.API/ServiceTicket.API.csproj" />
+  <Project Path="ServiceTicket.Core/ServiceTicket.Core.csproj" />
+  <Project Path="ServiceTicket.Infrastructure/ServiceTicket.Infrastructure.csproj" />
+  <Project Path="ServiceTicket.Tests/ServiceTicket.Tests.csproj" />
+  <Project Path="ServiceTicket.Worker/ServiceTicket.Worker.csproj" />
+</Solution>
