@@ -13,20 +13,24 @@ public class UpdateTicketStatusHandler
         ITicketRepository ticketRepository,
         IServiceOrderPublisher publisher)
     {
+        ArgumentNullException.ThrowIfNull(ticketRepository);
+        ArgumentNullException.ThrowIfNull(publisher);
         _ticketRepository = ticketRepository;
         _publisher = publisher;
     }
 
-    public async Task HandleAsync(UpdateTicketStatusCommand command)
+    public async Task HandleAsync(UpdateTicketStatusCommand command, CancellationToken cancellationToken = default)
     {
-        var ticket = await _ticketRepository.GetByIdAsync(command.TicketId)
+        ArgumentNullException.ThrowIfNull(command);
+
+        var ticket = await _ticketRepository.GetByIdAsync(command.TicketId, cancellationToken)
             ?? throw new KeyNotFoundException($"Chamado {command.TicketId} não encontrado.");
 
         ticket.UpdateStatus(command.NewStatus);
-        await _ticketRepository.UpdateAsync(ticket);
+        await _ticketRepository.UpdateAsync(ticket, cancellationToken);
 
         // Publica na fila quando finalizado — Worker irá consumir
         if (command.NewStatus == TicketStatus.Finished)
-            await _publisher.PublishAsync(ticket.Id);
+            await _publisher.PublishAsync(ticket.Id, cancellationToken);
     }
 }

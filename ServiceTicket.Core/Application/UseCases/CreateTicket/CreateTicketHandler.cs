@@ -11,10 +11,11 @@ public class CreateTicketHandler
 
     public CreateTicketHandler(ITicketRepository ticketRepository)
     {
+        ArgumentNullException.ThrowIfNull(ticketRepository);
         _ticketRepository = ticketRepository;
     }
 
-    public async Task<CreateTicketResponse> HandleAsync(CreateTicketCommand command)
+    public async Task<CreateTicketResponse> HandleAsync(CreateTicketCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
 
@@ -32,7 +33,7 @@ public class CreateTicketHandler
             command.ProblemDescription,
             priority);      
 
-        await _ticketRepository.AddAsync(ticket);
+        await _ticketRepository.AddAsync(ticket, cancellationToken);
 
         return new CreateTicketResponse(
             ticket.Id,

@@ -11,29 +11,22 @@ public class GetTicketsHandler
 
     public GetTicketsHandler(ITicketRepository ticketRepository)
     {
+        ArgumentNullException.ThrowIfNull(ticketRepository);
         _ticketRepository = ticketRepository;
     }
 
-    public async Task<IEnumerable<TicketDto>> HandleAsync(GetTicketsQuery query)
+    public async Task<IEnumerable<TicketDto>> HandleAsync(GetTicketsQuery query, CancellationToken cancellationToken = default)
     {
-        TicketStatus? status = null;
-        if (!string.IsNullOrWhiteSpace(query.Status) && 
-            Enum.TryParse<TicketStatus>(query.Status, true, out var parsedStatus))
-        {
-            status = parsedStatus;
-        }
+        ArgumentNullException.ThrowIfNull(query);
 
-        Priority? priority = null;
-        if (!string.IsNullOrWhiteSpace(query.Priority) && 
-            Enum.TryParse<Priority>(query.Priority, true, out var parsedPriority))
-        {
-            priority = parsedPriority;
-        }
+        var status = ParseEnum<TicketStatus>(query.Status);
+        var priority = ParseEnum<Priority>(query.Priority);
 
         var tickets = await _ticketRepository.GetAllAsync(
             status,
             priority,
-            query.ClientName);
+            query.ClientName,
+            cancellationToken);
 
         return tickets.Select(t => new TicketDto(
             t.Id,
@@ -43,5 +36,12 @@ public class GetTicketsHandler
             t.Status.ToString(),
             t.CreatedAt,
             t.UpdatedAt));
+    }
+
+    private static TEnum? ParseEnum<TEnum>(string? value) where TEnum : struct, Enum
+    {
+        return !string.IsNullOrWhiteSpace(value) && Enum.TryParse<TEnum>(value, true, out var result)
+            ? result
+            : null;
     }
 }

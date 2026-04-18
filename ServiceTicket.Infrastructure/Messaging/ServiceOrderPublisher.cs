@@ -19,7 +19,7 @@ public class ServiceOrderPublisher : IServiceOrderPublisher
         _logger = logger;
     }
 
-    public async Task PublishAsync(Guid ticketId)
+    public async Task PublishAsync(Guid ticketId, CancellationToken cancellationToken = default)
     {
         await using var channel = await _connection.CreateChannelAsync();
 
@@ -35,7 +35,8 @@ public class ServiceOrderPublisher : IServiceOrderPublisher
             routingKey: RabbitMQConnection.FinishedOrdersQueue,
             mandatory: false,
             basicProperties: properties,
-            body: body);
+            body: body,
+            cancellationToken: cancellationToken);
 
         _logger.LogInformation("Ticket {TicketId} publicado na fila.", ticketId);
     }

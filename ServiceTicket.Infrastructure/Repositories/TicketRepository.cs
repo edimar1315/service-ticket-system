@@ -16,15 +16,16 @@ public class TicketRepository : ITicketRepository
         _context = context;
     }
 
-    public async Task<Ticket?> GetByIdAsync(Guid id)
+    public async Task<Ticket?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => await _context.Tickets
             .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
     public async Task<IEnumerable<Ticket>> GetAllAsync(
         TicketStatus? status = null,
         Priority? priority = null,
-        string? clientName = null)
+        string? clientName = null,
+        CancellationToken cancellationToken = default)
     {
         var query = _context.Tickets.AsNoTracking();
 
@@ -41,18 +42,18 @@ public class TicketRepository : ITicketRepository
 
         return await query
             .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task AddAsync(Ticket ticket)
+    public async Task AddAsync(Ticket ticket, CancellationToken cancellationToken = default)
     {
-        await _context.Tickets.AddAsync(ticket);
-        await _context.SaveChangesAsync();
+        await _context.Tickets.AddAsync(ticket, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateAsync(Ticket ticket)
+    public async Task UpdateAsync(Ticket ticket, CancellationToken cancellationToken = default)
     {
         _context.Tickets.Update(ticket);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

@@ -3,5 +3,5 @@ namespace ServiceTicket.Core.Domain.Interfaces;
 
 public interface IServiceOrderPublisher
 {
-    Task PublishAsync(Guid ticketId);
+    Task PublishAsync(Guid ticketId, CancellationToken cancellationToken = default);
 }
