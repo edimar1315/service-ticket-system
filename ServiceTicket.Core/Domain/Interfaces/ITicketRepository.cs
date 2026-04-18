@@ -6,11 +6,12 @@ namespace ServiceTicket.Core.Domain.Interfaces;
 
 public interface ITicketRepository
 {
-    Task<Ticket?> GetByIdAsync(Guid id);
+    Task<Ticket?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<Ticket>> GetAllAsync(
         TicketStatus? status = null,
         Priority? priority = null,
-        string? clientName = null);
-    Task AddAsync(Ticket ticket);
-    Task UpdateAsync(Ticket ticket);
+        string? clientName = null,
+        CancellationToken cancellationToken = default);
+    Task AddAsync(Ticket ticket, CancellationToken cancellationToken = default);
+    Task UpdateAsync(Ticket ticket, CancellationToken cancellationToken = default);
 }
