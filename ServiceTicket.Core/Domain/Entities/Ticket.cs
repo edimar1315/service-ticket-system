@@ -1,6 +1,4 @@
 // Domain/Entities/Ticket.cs
-using ServiceTicket.Core.Domain.Enums;
-
 namespace ServiceTicket.Core.Domain.Entities;
 
 public class Ticket

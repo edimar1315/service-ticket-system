@@ -1,5 +1,4 @@
-using ServiceTicket.Core.Domain.Entities;
-
+// Domain/Interfaces/INotificationRepository.cs
 namespace ServiceTicket.Core.Domain.Interfaces;
 
 public interface INotificationRepository

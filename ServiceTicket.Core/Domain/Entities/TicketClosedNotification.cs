@@ -1,7 +1,7 @@
 // Domain/Entities/TicketClosedNotification.cs
 namespace ServiceTicket.Core.Domain.Entities;
 
-    public class TicketClosedNotification
+public class TicketClosedNotification
 {
     public Guid Id { get; private set; }
     public Guid TicketId { get; private set; }
@@ -16,4 +16,3 @@ namespace ServiceTicket.Core.Domain.Entities;
         NotifiedAt = DateTime.UtcNow;
     }
 }
-
