@@ -1,57 +1,45 @@
-using System;
+// Domain/Entities/Ticket.cs
+using ServiceTicket.Core.Domain.Enums;
 
-namespace ServiceTicket.Core.Domain.Entities
+namespace ServiceTicket.Core.Domain.Entities;
+
+public class Ticket
 {
-    public class Ticket
+    public Guid Id { get; private set; }
+    public string ClientName { get; private set; }
+    public string ProblemDescription { get; private set; }
+    public Priority Priority { get; private set; }
+    public TicketStatus Status { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime? UpdatedAt { get; private set; }
+
+    protected Ticket() { } // EF Core
+
+    public Ticket(string clientName, string problemDescription, Priority priority)
     {
-        public Guid Id { get; set; }
-        public string ClientName { get; set; } = string.Empty;
-        public string ClientEmail { get; set; } = string.Empty;
-        public string ProblemDescription { get; set; } = string.Empty;
-        public TicketPriority Priority { get; set; }
-        public TicketStatus Status { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public DateTime? ClosedAt { get; set; }
-        public string CreatedByUserId { get; set; } = string.Empty;
-        public string? AssignedToUserId { get; set; }
-        
-        
-        public void UpdateStatus(TicketStatus newStatus)
-        {
-            if (newStatus != Status)
-            {
-                Status = newStatus;
-                UpdatedAt = DateTime.UtcNow;
+        if (string.IsNullOrWhiteSpace(clientName))
+            throw new ArgumentException("Cliente é obrigatório.");
 
-                if (newStatus == TicketStatus.Closed)
-                {
-                    ClosedAt = DateTime.UtcNow;
-                }
-            }
-        }
-        
-        public void UpdatePriority(TicketPriority newPriority)
-        {
-            Priority = newPriority;
-            UpdatedAt = DateTime.UtcNow;
-        }
-        
-        public enum TicketPriority
-        {
-            Low = 1,
-            Medium = 2,
-            High = 3,
-            Critical = 4
-        }
+        if (string.IsNullOrWhiteSpace(problemDescription))
+            throw new ArgumentException("Descrição do problema é obrigatória.");
 
-        public enum TicketStatus 
-        {
-            Open = 1,
-            InProgress = 2,
-            Resolved = 3,
-            Closed = 4
-        }
+        Id = Guid.NewGuid();
+        ClientName = clientName;
+        ProblemDescription = problemDescription;
+        Priority = priority;
+        Status = TicketStatus.Open;
+        CreatedAt = DateTime.UtcNow;
+    }
 
+    public void UpdateStatus(TicketStatus newStatus)
+    {
+        if (Status == TicketStatus.Finished)
+            throw new InvalidOperationException("Chamado finalizado não pode ser alterado.");
+
+        if (Status == TicketStatus.Cancelled)
+            throw new InvalidOperationException("Chamado cancelado não pode ser alterado.");
+
+        Status = newStatus;
+        UpdatedAt = DateTime.UtcNow;
     }
 }
