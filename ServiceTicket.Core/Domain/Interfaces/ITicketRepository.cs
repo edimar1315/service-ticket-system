@@ -1,16 +1,13 @@
-using ServiceTicket.Core.Domain.Entities;
-using ServiceTicket.Core.Domain.Enums;
-
+// Domain/Interfaces/ITicketRepository.cs
 namespace ServiceTicket.Core.Domain.Interfaces;
 
-public interface ITicketRepository 
+public interface ITicketRepository
 {
     Task<Ticket?> GetByIdAsync(Guid id);
     Task<IEnumerable<Ticket>> GetAllAsync(
         TicketStatus? status = null,
         Priority? priority = null,
-        string? assignedTo = null);
+        string? clientName = null);
     Task AddAsync(Ticket ticket);
     Task UpdateAsync(Ticket ticket);
-
 }
