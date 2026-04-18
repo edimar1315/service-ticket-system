@@ -1,4 +1,6 @@
 // Domain/Entities/Ticket.cs
+using ServiceTicket.Core.Domain.Enums;
+
 namespace ServiceTicket.Core.Domain.Entities;
 
 public class Ticket
@@ -11,7 +13,11 @@ public class Ticket
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 
-    protected Ticket() { } // EF Core
+    protected Ticket(string? clientName, string? problemDescription)
+    {
+        ClientName = clientName;
+        ProblemDescription = problemDescription;
+    } // EF Core
 
     public Ticket(string clientName, string problemDescription, Priority priority)
     {

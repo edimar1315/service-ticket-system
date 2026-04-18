@@ -1,4 +1,7 @@
 // Domain/Interfaces/ITicketRepository.cs
+using ServiceTicket.Core.Domain.Entities;
+using ServiceTicket.Core.Domain.Enums;
+
 namespace ServiceTicket.Core.Domain.Interfaces;
 
 public interface ITicketRepository
