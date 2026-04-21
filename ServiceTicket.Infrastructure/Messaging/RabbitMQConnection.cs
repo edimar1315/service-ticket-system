@@ -11,6 +11,7 @@ public class RabbitMQConnection : IAsyncDisposable
     private readonly ILogger<RabbitMQConnection> _logger;
 
     public const string FinishedOrdersQueue = "finished-orders";
+    public const string FinishedOrdersDeadLetterQueue = "finished-orders.dlq";
 
     public RabbitMQConnection(IConfiguration configuration, ILogger<RabbitMQConnection> logger)
     {
@@ -34,6 +35,12 @@ public class RabbitMQConnection : IAsyncDisposable
 
         await channel.QueueDeclareAsync(
             queue: FinishedOrdersQueue,
+            durable: true,
+            exclusive: false,
+            autoDelete: false);
+
+        await channel.QueueDeclareAsync(
+            queue: FinishedOrdersDeadLetterQueue,
             durable: true,
             exclusive: false,
             autoDelete: false);
