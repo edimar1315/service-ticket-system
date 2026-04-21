@@ -1,13 +1,32 @@
+using ServiceTicket.API.Services;
+using ServiceTicket.Core.Interfaces.Services;
 using ServiceTicket.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Infrastructure (DbContext, Repositories, RabbitMQ, MongoDB)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Application Services
+builder.Services.AddScoped<ITicketService, TicketApplicationService>();
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
+// Controllers
+builder.Services.AddControllers();
+
+// Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "Service Ticket API", Version = "v1" });
+});
+
+// Authentication & Authorization (opcional por enquanto)
+// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+//     .AddJwtBearer(options => { ... });
+// builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -20,29 +39,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// app.UseAuthentication(); // Descomente quando configurar JWT
+// app.UseAuthorization();  // Descomente quando configurar JWT
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

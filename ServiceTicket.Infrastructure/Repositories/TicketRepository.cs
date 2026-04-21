@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ServiceTicket.Core.Domain.Entities;
 using ServiceTicket.Core.Domain.Enums;
-using ServiceTicket.Core.Domain.Interfaces;
+using ServiceTicket.Core.Interfaces.Repositories;
 using ServiceTicket.Infrastructure.Data;
 
 namespace ServiceTicket.Infrastructure.Repositories;
@@ -25,6 +25,8 @@ public class TicketRepository : ITicketRepository
         TicketStatus? status = null,
         Priority? priority = null,
         string? clientName = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
         var query = _context.Tickets.AsNoTracking();
@@ -42,7 +44,31 @@ public class TicketRepository : ITicketRepository
 
         return await query
             .OrderByDescending(t => t.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> GetTotalCountAsync(
+        TicketStatus? status = null,
+        Priority? priority = null,
+        string? clientName = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Tickets.AsNoTracking();
+
+        if (status.HasValue)
+            query = query.Where(t => t.Status == status.Value);
+
+        if (priority.HasValue)
+            query = query.Where(t => t.Priority == priority.Value);
+
+        if (!string.IsNullOrWhiteSpace(clientName))
+            query = query.Where(t => t.ClientName
+                .ToLower()
+                .Contains(clientName.ToLower()));
+
+        return await query.CountAsync(cancellationToken);
     }
 
     public async Task AddAsync(Ticket ticket, CancellationToken cancellationToken = default)
@@ -56,4 +82,9 @@ public class TicketRepository : ITicketRepository
         _context.Tickets.Update(ticket);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+        => await _context.Tickets
+            .AsNoTracking()
+            .AnyAsync(t => t.Id == id, cancellationToken);
 }
