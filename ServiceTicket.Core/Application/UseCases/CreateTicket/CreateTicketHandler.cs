@@ -1,7 +1,7 @@
 // UseCases/CreateTicket/CreateTicketHandler.cs
 using ServiceTicket.Core.Domain.Entities;
 using ServiceTicket.Core.Domain.Enums;
-using ServiceTicket.Core.Domain.Interfaces;
+using ServiceTicket.Core.Interfaces.Repositories;
 
 namespace ServiceTicket.Core.Application.UseCases.CreateTicket;
 

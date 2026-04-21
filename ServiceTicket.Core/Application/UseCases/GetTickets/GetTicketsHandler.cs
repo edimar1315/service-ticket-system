@@ -1,7 +1,7 @@
 // UseCases/GetTickets/GetTicketsHandler.cs
 using ServiceTicket.Core.Application.DTOs;
 using ServiceTicket.Core.Domain.Enums;
-using ServiceTicket.Core.Domain.Interfaces;
+using ServiceTicket.Core.Interfaces.Repositories;
 
 namespace ServiceTicket.Core.Application.UseCases.GetTickets;
 
@@ -26,6 +26,8 @@ public class GetTicketsHandler
             status,
             priority,
             query.ClientName,
+            pageNumber: 1,
+            pageSize: 100,
             cancellationToken);
 
         return tickets.Select(t => new TicketDto(
