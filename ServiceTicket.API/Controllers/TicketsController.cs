@@ -10,7 +10,7 @@ namespace ServiceTicket.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-// [Authorize] // TODO: Descomentar quando configurar autenticação JWT
+[Authorize]
 public class TicketsController : ControllerBase
 {
     private readonly ITicketService _ticketService;
