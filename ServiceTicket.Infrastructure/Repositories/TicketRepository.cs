@@ -18,7 +18,6 @@ public class TicketRepository : ITicketRepository
 
     public async Task<Ticket?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => await _context.Tickets
-            .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
     public async Task<IEnumerable<Ticket>> GetAllAsync(
@@ -79,7 +78,8 @@ public class TicketRepository : ITicketRepository
 
     public async Task UpdateAsync(Ticket ticket, CancellationToken cancellationToken = default)
     {
-        _context.Tickets.Update(ticket);
+        // O ticket já está sendo rastreado pelo contexto (GetByIdAsync sem AsNoTracking)
+        // SaveChanges detecta automaticamente as mudanças da entidade rastreada
         await _context.SaveChangesAsync(cancellationToken);
     }
 
