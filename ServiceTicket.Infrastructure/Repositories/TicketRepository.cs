@@ -26,6 +26,7 @@ public class TicketRepository : ITicketRepository
         string? clientName = null,
         int pageNumber = 1,
         int pageSize = 10,
+        Guid? createdByUserId = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.Tickets.AsNoTracking();
@@ -40,6 +41,9 @@ public class TicketRepository : ITicketRepository
             query = query.Where(t => t.ClientName
                 .ToLower()
                 .Contains(clientName.ToLower()));
+
+        if (createdByUserId.HasValue)
+            query = query.Where(t => t.CreatedByUserId == createdByUserId.Value);
 
         return await query
             .OrderByDescending(t => t.CreatedAt)
@@ -52,6 +56,7 @@ public class TicketRepository : ITicketRepository
         TicketStatus? status = null,
         Priority? priority = null,
         string? clientName = null,
+        Guid? createdByUserId = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.Tickets.AsNoTracking();
@@ -66,6 +71,9 @@ public class TicketRepository : ITicketRepository
             query = query.Where(t => t.ClientName
                 .ToLower()
                 .Contains(clientName.ToLower()));
+
+        if (createdByUserId.HasValue)
+            query = query.Where(t => t.CreatedByUserId == createdByUserId.Value);
 
         return await query.CountAsync(cancellationToken);
     }

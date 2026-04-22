@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ticketService } from '../services/ticketService';
+import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -11,15 +12,12 @@ const TicketList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [assigningId, setAssigningId] = useState(null);
   const navigate = useNavigate();
+  const { isSupport, user } = useAuth();
 
-  useEffect(() => {
-    loadTickets();
-  }, []);
-
-  useEffect(() => {
-    filterTickets();
-  }, [statusFilter, tickets]);
+  const isTerminal = (status) =>
+    status?.toLowerCase() === 'finished' || status?.toLowerCase() === 'cancelled';
 
   const loadTickets = async () => {
     setIsLoading(true);
@@ -34,6 +32,21 @@ const TicketList = () => {
       setTickets([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAssign = async (ticketId) => {
+    setAssigningId(ticketId);
+    try {
+      const updated = await ticketService.assignToMe(ticketId);
+      setTickets(prev =>
+        prev.map(t => t.id === updated.id ? { ...t, assignedToUserId: updated.assignedToUserId } : t)
+      );
+    } catch (err) {
+      setError('Erro ao assumir chamado');
+      console.error(err);
+    } finally {
+      setAssigningId(null);
     }
   };
 
@@ -85,6 +98,16 @@ const TicketList = () => {
     };
     return colors[priority] || 'text-gray-600';
   };
+
+  useEffect(() => {
+    loadTickets();
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/immutability
+  }, []);
+
+  useEffect(() => {
+    filterTickets();
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/immutability
+  }, [statusFilter, tickets]);
 
   if (isLoading) {
     return (
@@ -188,6 +211,11 @@ const TicketList = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Criado em
                       </th>
+                      {isSupport && (
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Analista
+                        </th>
+                      )}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Ações
                       </th>
@@ -213,6 +241,15 @@ const TicketList = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
                         </td>
+                        {isSupport && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {ticket.assignedToUserId
+                              ? ticket.assignedToUserId === user?.id
+                                ? <span className="text-green-600 font-medium">Você</span>
+                                : <span className="text-gray-600">{ticket.assignedToUserId.substring(0, 8)}…</span>
+                              : <span className="text-gray-400 italic">Sem analista</span>}
+                          </td>
+                        )}
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
                             onClick={() => navigate(`/tickets/${ticket.id}`)}
@@ -220,11 +257,23 @@ const TicketList = () => {
                           >
                             Ver
                           </button>
-                          <button
-                            onClick={() => navigate(`/tickets/${ticket.id}/edit`)}
-                            className="text-blue-600 hover:text-blue-900">
-                            Editar
-                          </button>
+                          {isSupport && !isTerminal(ticket.status) && (
+                            <button
+                              onClick={() => navigate(`/tickets/${ticket.id}/edit`)}
+                              className="text-blue-600 hover:text-blue-900 mr-4"
+                            >
+                              Editar
+                            </button>
+                          )}
+                          {isSupport && !isTerminal(ticket.status) && ticket.assignedToUserId !== user?.id && (
+                            <button
+                              onClick={() => handleAssign(ticket.id)}
+                              disabled={assigningId === ticket.id}
+                              className="text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
+                            >
+                              {assigningId === ticket.id ? 'Assumindo…' : 'Assumir'}
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}

@@ -31,7 +31,8 @@ public class CreateTicketHandler
         var ticket = new Ticket(
             command.ClientName,
             command.ProblemDescription,
-            priority);      
+            priority,
+            Guid.Empty);
 
         await _ticketRepository.AddAsync(ticket, cancellationToken);
 

@@ -42,5 +42,9 @@ public class TicketMapping : IEntityTypeConfiguration<Ticket>
 
         builder.Property(t => t.UpdatedAt)
             .HasColumnName("updated_at");
+
+        builder.Property(t => t.CreatedByUserId)
+            .HasColumnName("created_by_user_id")
+            .IsRequired();
     }
 }
