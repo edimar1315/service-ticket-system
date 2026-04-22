@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using ServiceTicket.Core.Application.DTOs.Auth;
 using ServiceTicket.Core.Domain.Entities;
+using ServiceTicket.Core.Domain.Enums;
 using ServiceTicket.Core.Interfaces.Services;
 
 namespace ServiceTicket.API.Services;
@@ -28,6 +29,10 @@ public class AuthService : IAuthService
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Registrando novo usuário: {Email}", request.Email);
+
+        var role = request.Role is UserRole.Customer or UserRole.Support
+            ? request.Role
+            : UserRole.Customer;
 
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
@@ -54,7 +59,15 @@ public class AuthService : IAuthService
             throw new InvalidOperationException($"Falha ao criar usuário: {errors}");
         }
 
-        _logger.LogInformation("Usuário {Email} criado com sucesso", request.Email);
+        var roleResult = await _userManager.AddToRoleAsync(user, role);
+        if (!roleResult.Succeeded)
+        {
+            var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+            _logger.LogError("Falha ao atribuir role '{Role}' ao usuário {Email}: {Errors}", role, request.Email, roleErrors);
+            throw new InvalidOperationException($"Usuário criado, mas falha ao atribuir perfil '{role}': {roleErrors}");
+        }
+
+        _logger.LogInformation("Usuário {Email} criado com role {Role}", request.Email, role);
 
         return await GenerateAuthResponseAsync(user);
     }
@@ -99,6 +112,7 @@ public class AuthService : IAuthService
 
         // Adicionar roles (se houver)
         var roles = await _userManager.GetRolesAsync(user);
+        var primaryRole = roles.FirstOrDefault() ?? UserRole.Customer;
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -119,6 +133,7 @@ public class AuthService : IAuthService
             Token: tokenString,
             Email: user.Email!,
             FullName: user.FullName,
+            Role: primaryRole,
             ExpiresAt: expiresAt
         );
     }

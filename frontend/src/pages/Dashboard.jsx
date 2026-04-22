@@ -1,27 +1,27 @@
 /* eslint-disable react-hooks/immutability */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/useAuth';
 import { ticketService } from '../services/ticketService';
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
+import AnalystTicketsCard from '../components/AnalystTicketsCard';
 
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
   const [recentTickets, setRecentTickets] = useState([]);
+  const [analystTickets, setAnalystTickets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     setIsLoading(true);
     setError('');
 
     try {
-      const [metricsData, ticketsData] = await Promise.all([
+      const promises = [
         ticketService.getMetrics().catch(() => ({
           total: 0,
           open: 0,
@@ -30,17 +30,31 @@ const Dashboard = () => {
           cancelled: 0
         })),
         ticketService.getAll().catch(() => [])
-      ]);
+      ];
+
+      // Carregar dados de analistas apenas se o usuário for support
+      if (user?.roles?.includes('Support')) {
+        promises.push(
+          ticketService.getTicketsByAnalysts().catch(() => [])
+        );
+      }
+
+      const [metricsData, ticketsData, analystData] = await Promise.all(promises);
 
       setMetrics(metricsData);
       setRecentTickets(ticketsData.slice(0, 5));
+      setAnalystTickets(analystData || []);
     } catch (err) {
       setError('Erro ao carregar dados do dashboard');
       console.error(err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const getStatusColor = (status) => {
     const colors = {
@@ -219,6 +233,17 @@ const Dashboard = () => {
               </div>
             )}
           </Card>
+
+          {/* Seção de Analistas (apenas para Support) */}
+          {user?.roles?.includes('Support') && (
+            <div className="mt-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Tickets por Analista</h2>
+              <AnalystTicketsCard 
+                analysts={analystTickets} 
+                isLoading={isLoading}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

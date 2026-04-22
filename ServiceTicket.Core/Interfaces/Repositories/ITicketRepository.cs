@@ -12,11 +12,13 @@ public interface ITicketRepository
         string? clientName = null,
         int pageNumber = 1,
         int pageSize = 10,
+        Guid? createdByUserId = null,
         CancellationToken cancellationToken = default);
     Task<int> GetTotalCountAsync(
         TicketStatus? status = null,
         Priority? priority = null,
         string? clientName = null,
+        Guid? createdByUserId = null,
         CancellationToken cancellationToken = default);
     Task AddAsync(Ticket ticket, CancellationToken cancellationToken = default);
     Task UpdateAsync(Ticket ticket, CancellationToken cancellationToken = default);

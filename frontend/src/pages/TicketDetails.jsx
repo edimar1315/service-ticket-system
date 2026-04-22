@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ticketService } from '../services/ticketService';
+import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -9,14 +10,14 @@ import Select from '../components/Select';
 const TicketDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isSupport } = useAuth();
   const [ticket, setTicket] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  useEffect(() => {
-    loadTicket();
-  }, [id]);
+  const isTerminal = (status) =>
+    status?.toLowerCase() === 'finished' || status?.toLowerCase() === 'cancelled';
 
   const loadTicket = async () => {
     setIsLoading(true);
@@ -91,6 +92,11 @@ const TicketDetails = () => {
     { value: 'closed', label: 'Cancelado' },
   ];
 
+  useEffect(() => {
+    loadTicket();
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  }, [id]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -129,15 +135,17 @@ const TicketDetails = () => {
               Ticket #{ticket.id}
             </h1>
             <div className="flex gap-2">
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 onClick={() => navigate('/tickets')}
               >
                 Voltar
               </Button>
-              <Button onClick={() => navigate(`/tickets/${id}/edit`)}>
-                Editar
-              </Button>
+              {isSupport && !isTerminal(ticket.status) && (
+                <Button onClick={() => navigate(`/tickets/${id}/edit`)}>
+                  Editar
+                </Button>
+              )}
             </div>
           </div>
 
@@ -225,14 +233,29 @@ const TicketDetails = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Atualizar Status
                 </h3>
-                <Select
-                  name="status"
-                  value={ticket.status}
-                  onChange={(e) => handleStatusChange(e.target.value)}
-                  options={statusOptions}
-                />
-                {isUpdatingStatus && (
-                  <p className="mt-2 text-sm text-gray-500">Atualizando...</p>
+                {isSupport ? (
+                  isTerminal(ticket.status) ? (
+                    <div className="rounded-md bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-500">
+                      Este chamado está <strong>{getStatusLabel(ticket.status)}</strong> e não pode ser alterado.
+                    </div>
+                  ) : (
+                    <>
+                      <Select
+                        name="status"
+                        value={ticket.status}
+                        onChange={(e) => handleStatusChange(e.target.value)}
+                        options={statusOptions}
+                        disabled={isUpdatingStatus}
+                      />
+                      {isUpdatingStatus && (
+                        <p className="mt-2 text-sm text-gray-500">Atualizando...</p>
+                      )}
+                    </>
+                  )
+                ) : (
+                  <div className="rounded-md bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-500">
+                    Apenas a equipe de suporte pode alterar o status.
+                  </div>
                 )}
               </Card>
             </div>

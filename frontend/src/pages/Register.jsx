@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth'
 import Input from '../components/Input';
 import Button from '../components/Button';
 import Card from '../components/Card';
+import Select from '../components/Select';
 
 const Register = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('Customer');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,7 +35,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      await register(fullName, email, password);
+      await register(fullName, email, password, role);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Erro ao criar conta. Tente novamente.');
@@ -101,6 +103,21 @@ const Register = () => {
               placeholder="••••••••"
               required
             />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tipo de Conta
+              </label>
+              <Select
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                options={[
+                  { value: 'Customer', label: 'Cliente — abre e acompanha chamados' },
+                  { value: 'Support', label: 'Suporte — atende e atualiza chamados' },
+                ]}
+              />
+            </div>
 
             <Button
               type="submit"
