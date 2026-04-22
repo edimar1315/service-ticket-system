@@ -79,6 +79,11 @@ export const ticketService = {
     return response.data;
   },
 
+  assignToMe: async (id) => {
+    const response = await api.patch(`/api/tickets/${id}/assign`);
+    return response.data;
+  },
+
   updateStatus: async (id, status) => {
     // Mapear status frontend (string) → backend (int)
     const statusMap = {
@@ -106,5 +111,15 @@ export const ticketService = {
   getMetrics: async () => {
     const response = await api.get('/api/tickets/metrics');
     return response.data;
+  },
+
+  getTicketsByAnalysts: async () => {
+    try {
+      const response = await api.get('/api/tickets/analysts');
+      return response.data || [];
+    } catch (error) {
+      console.error('Erro ao obter tickets por analista:', error);
+      return [];
+    }
   },
 };

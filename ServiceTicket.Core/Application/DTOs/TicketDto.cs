@@ -10,7 +10,9 @@ public record TicketDto(
     string Priority,
     string Status,
     DateTime CreatedAt,
-    DateTime? UpdatedAt
+    DateTime? UpdatedAt,
+    Guid CreatedByUserId,
+    Guid? AssignedToUserId
 );
 
 public record CreateTicketDto(

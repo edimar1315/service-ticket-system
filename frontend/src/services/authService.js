@@ -3,15 +3,17 @@ import api from './api';
 const mapAuthPayload = (data) => ({
   email: data.email,
   fullName: data.fullName,
+  role: data.role ?? 'Customer',
   expiresAt: data.expiresAt,
 });
 
 export const authService = {
-  register: async (fullName, email, password) => {
-    const response = await api.post('/api/auth/register', { 
-      fullName, 
-      email, 
-      password 
+  register: async (fullName, email, password, role = 'Customer') => {
+    const response = await api.post('/api/auth/register', {
+      fullName,
+      email,
+      password,
+      role,
     });
 
     if (response.data.token) {
