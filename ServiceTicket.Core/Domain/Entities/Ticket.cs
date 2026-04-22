@@ -12,14 +12,16 @@ public class Ticket
     public TicketStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
+    public Guid CreatedByUserId { get; private set; }
+    public Guid? AssignedToUserId { get; private set; }
 
     protected Ticket(string? clientName, string? problemDescription)
     {
-        ClientName = clientName;
-        ProblemDescription = problemDescription;
+        ClientName = clientName!;
+        ProblemDescription = problemDescription!;
     } // EF Core
 
-    public Ticket(string clientName, string problemDescription, Priority priority)
+    public Ticket(string clientName, string problemDescription, Priority priority, Guid createdByUserId)
     {
         if (string.IsNullOrWhiteSpace(clientName))
             throw new ArgumentException("Cliente é obrigatório.");
@@ -33,6 +35,7 @@ public class Ticket
         Priority = priority;
         Status = TicketStatus.Open;
         CreatedAt = DateTime.UtcNow;
+        CreatedByUserId = createdByUserId;
     }
 
     public void UpdateStatus(TicketStatus newStatus)
@@ -44,6 +47,18 @@ public class Ticket
             throw new InvalidOperationException("Chamado cancelado não pode ser alterado.");
 
         Status = newStatus;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AssignTo(Guid supportUserId)
+    {
+        if (Status == TicketStatus.Finished)
+            throw new InvalidOperationException("Chamado finalizado não pode ser reatribuído.");
+
+        if (Status == TicketStatus.Cancelled)
+            throw new InvalidOperationException("Chamado cancelado não pode ser reatribuído.");
+
+        AssignedToUserId = supportUserId;
         UpdatedAt = DateTime.UtcNow;
     }
 }

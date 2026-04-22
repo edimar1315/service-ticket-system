@@ -28,6 +28,7 @@ public class GetTicketsHandler
             query.ClientName,
             pageNumber: 1,
             pageSize: 100,
+            createdByUserId: null,
             cancellationToken);
 
         return tickets.Select(t => new TicketDto(
@@ -37,7 +38,9 @@ public class GetTicketsHandler
             t.Priority.ToString(),
             t.Status.ToString(),
             t.CreatedAt,
-            t.UpdatedAt));
+            t.UpdatedAt,
+            t.CreatedByUserId,
+            t.AssignedToUserId));
     }
 
     private static TEnum? ParseEnum<TEnum>(string? value) where TEnum : struct, Enum

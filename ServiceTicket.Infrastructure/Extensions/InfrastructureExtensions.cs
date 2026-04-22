@@ -1,7 +1,9 @@
 // Extensions/InfrastructureExtensions.cs
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceTicket.Core.Domain.Enums;
 using ServiceTicket.Core.Interfaces.Repositories;
 using ServiceTicket.Core.Interfaces.Messaging;
 using ServiceTicket.Infrastructure.Data;
@@ -32,5 +34,19 @@ public static class InfrastructureExtensions
         services.AddScoped<ITicketRepository, TicketRepository>();
 
         return services;
+    }
+
+    public static async Task SeedRolesAsync(IServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+        foreach (var role in new[] { UserRole.Customer, UserRole.Support })
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole<Guid>(role));
+            }
+        }
     }
 }
