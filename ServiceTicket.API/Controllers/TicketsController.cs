@@ -190,4 +190,38 @@ public class TicketsController : ControllerBase
                 new { message = "Erro ao atualizar status. Tente novamente mais tarde." });
         }
     }
+
+    /// <summary>
+    /// Obtém métricas agregadas dos tickets
+    /// </summary>
+    [HttpGet("metrics")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetMetrics(CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogDebug("Obtendo métricas de tickets");
+
+            var (tickets, _) = await _ticketService.GetTicketsAsync(
+                null, null, null, 1, int.MaxValue, cancellationToken);
+
+            var metrics = new
+            {
+                total = tickets.Count(),
+                open = tickets.Count(t => t.Status == TicketStatus.Open),
+                inProgress = tickets.Count(t => t.Status == TicketStatus.InProgress),
+                finished = tickets.Count(t => t.Status == TicketStatus.Finished),
+                cancelled = tickets.Count(t => t.Status == TicketStatus.Cancelled)
+            };
+
+            return Ok(metrics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao obter métricas");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Erro ao obter métricas. Tente novamente mais tarde." });
+        }
+    }
 }
