@@ -210,7 +210,7 @@ public class TicketsController : ControllerBase
     /// Atribui um ticket ao analista de suporte autenticado.
     /// </summary>
     [HttpPatch("{id:guid}/assign")]
-    [Authorize(Roles = UserRole.Support)]
+    [Authorize]
     [ProducesResponseType(typeof(TicketDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -221,6 +221,9 @@ public class TicketsController : ControllerBase
     {
         try
         {
+            if (!await IsSupportAsync())
+                return Forbid();
+
             _logger.LogInformation("Analista {UserId} assumindo ticket {TicketId}", CurrentUserId, id);
 
             var ticket = await _ticketService.AssignTicketAsync(id, CurrentUserId, cancellationToken);
@@ -245,7 +248,7 @@ public class TicketsController : ControllerBase
     /// Atualiza o status de um ticket. Apenas Support.
     /// </summary>
     [HttpPatch("{id:guid}/status")]
-    [Authorize(Roles = UserRole.Support)]
+    [Authorize]
     [ProducesResponseType(typeof(TicketDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -257,6 +260,9 @@ public class TicketsController : ControllerBase
     {
         try
         {
+            if (!await IsSupportAsync())
+                return Forbid();
+
             _logger.LogInformation("Requisição de atualização de status do ticket {TicketId} para {NewStatus}", id, request.Status);
 
             var newStatus = (TicketStatus)request.Status;
@@ -282,13 +288,16 @@ public class TicketsController : ControllerBase
     /// Obtém métricas agregadas dos tickets. Apenas Support.
     /// </summary>
     [HttpGet("metrics")]
-    [Authorize(Roles = UserRole.Support)]
+    [Authorize]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetMetrics(CancellationToken cancellationToken)
     {
         try
         {
+            if (!await IsSupportAsync())
+                return Forbid();
+
             _logger.LogDebug("Obtendo métricas de tickets");
 
             var (tickets, _) = await _ticketService.GetTicketsAsync(
@@ -317,13 +326,16 @@ public class TicketsController : ControllerBase
     /// Obtém tickets agrupados por analista de suporte. Apenas Support.
     /// </summary>
     [HttpGet("analysts")]
-    [Authorize(Roles = UserRole.Support)]
+    [Authorize]
     [ProducesResponseType(typeof(IEnumerable<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetTicketsByAnalysts(CancellationToken cancellationToken)
     {
         try
         {
+            if (!await IsSupportAsync())
+                return Forbid();
+
             _logger.LogDebug("Obtendo tickets agrupados por analista");
 
             var ticketsByAnalyst = await _ticketService.GetTicketsByAnalystsAsync(cancellationToken);

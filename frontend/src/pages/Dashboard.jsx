@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/immutability */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { ticketService } from '../services/ticketService';
@@ -33,7 +33,7 @@ const Dashboard = () => {
       ];
 
       // Carregar dados de analistas apenas se o usuário for support
-      if (user?.roles?.includes('Support')) {
+      if (user?.role === 'Support') {
         promises.push(
           ticketService.getTicketsByAnalysts().catch(() => [])
         );
@@ -235,7 +235,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Seção de Analistas (apenas para Support) */}
-          {user?.roles?.includes('Support') && (
+          {user?.role === 'Support' && (
             <div className="mt-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Tickets por Analista</h2>
               <AnalystTicketsCard 
