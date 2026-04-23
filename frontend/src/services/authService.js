@@ -1,11 +1,15 @@
 import api from './api';
 
+const pick = (data, camelKey, pascalKey) => data?.[camelKey] ?? data?.[pascalKey];
+
 const mapAuthPayload = (data) => ({
-  email: data.email,
-  fullName: data.fullName,
-  role: data.role ?? 'Customer',
-  expiresAt: data.expiresAt,
+  email: pick(data, 'email', 'Email'),
+  fullName: pick(data, 'fullName', 'FullName'),
+  role: pick(data, 'role', 'Role') ?? 'Customer',
+  expiresAt: pick(data, 'expiresAt', 'ExpiresAt'),
 });
+
+const extractToken = (data) => pick(data, 'token', 'Token');
 
 export const authService = {
   register: async (fullName, email, password, role = 'Customer') => {
@@ -16,27 +20,31 @@ export const authService = {
       role,
     });
 
-    if (response.data.token) {
+    const token = extractToken(response.data);
+
+    if (token) {
       const user = mapAuthPayload(response.data);
-      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       return { ...response.data, user };
     }
 
-    return response.data;
+    throw new Error('Resposta de registro sem token de autenticação.');
   },
 
   login: async (email, password) => {
     const response = await api.post('/api/auth/login', { email, password });
 
-    if (response.data.token) {
+    const token = extractToken(response.data);
+
+    if (token) {
       const user = mapAuthPayload(response.data);
-      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       return { ...response.data, user };
     }
 
-    return response.data;
+    throw new Error('Resposta de login sem token de autenticação.');
   },
 
   logout: () => {

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging.Abstractions;
 using ServiceTicket.Core.Application.DTOs;
 using ServiceTicket.Core.Domain.Entities;
 using ServiceTicket.Core.Domain.Enums;
@@ -26,6 +27,11 @@ public class TicketApplicationService : ITicketService
         _messagePublisher = messagePublisher;
         _logger = logger;
         _userManager = userManager;
+    }
+
+    public TicketApplicationService(ITicketRepository ticketRepository, IMessagePublisher messagePublisher, NullLogger<TicketApplicationService> instance)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<Ticket> CreateTicketAsync(
